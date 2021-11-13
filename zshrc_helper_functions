@@ -1,0 +1,57 @@
+bounds() {
+  if "$1" = true
+  then
+    adb shell setprop debug.layout true
+  else
+    adb shell setprop debug.layout false
+  fi
+  adb shell service call activity 1599295570
+}
+
+deeplink() {
+   adb shell am start -a android.intent.action.VIEW -d "$1"
+}
+
+skiagl() {
+   adb shell su
+   adb shell setprop debug.hwui.renderer skiagl
+   adb shell stop
+   adb shell start
+}
+
+ss() {
+  if [ $# -eq 0 ]
+  then
+    name="`date '+%d-%m-%Y-time-%H-%M-%S'`.png"
+  else
+    name="$1.png"
+  fi
+  adb shell screencap -p /sdcard/$name
+  adb pull /sdcard/$name
+  mv ./$name ~/Documents/androidss/
+  adb shell rm /sdcard/$name
+}
+
+
+rec() {
+  if [ $# -eq 0 ]
+  then 
+    echo "You need to enter filename (mp4 will be added as suffix)"
+  else
+    name="$1.mp4"
+    echo "Video recording started with the name of $1.mp4. You can get the file with get_file $1.mp4"
+    adb shell screenrecord --bit-rate 7000000 /sdcard/$name
+  fi
+}
+
+get_file() {
+  if [ $# -eq 0 ]
+  then 
+    echo "You need to enter filename"
+  else
+    adb pull /sdcard/$1
+    mv ./$1 ~/Documents/androidss/
+    adb shell rm /sdcard/$name
+  fi
+}
+
