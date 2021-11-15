@@ -32,6 +32,7 @@ ss() {
   adb shell rm /sdcard/$name
 }
 
+
 rec() {
   if [ $# -eq 0 ]
   then 
@@ -54,3 +55,11 @@ get_file() {
   fi
 }
 
+charles() {
+  if "$1" = true
+  then
+    adb shell settings put global http_proxy $(ipconfig getifaddr en0):8888
+  else
+    adb shell settings put global http_proxy :0
+  fi
+}
