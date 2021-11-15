@@ -1,5 +1,7 @@
 # dot_file
 
+### Helper Functions
+
 - bounds $true or $else
 
 - deeplink "$url"
