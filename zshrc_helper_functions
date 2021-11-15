@@ -32,7 +32,6 @@ ss() {
   adb shell rm /sdcard/$name
 }
 
-
 rec() {
   if [ $# -eq 0 ]
   then 
