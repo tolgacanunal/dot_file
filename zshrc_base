@@ -1,0 +1,120 @@
+DOT_FILES_DIR="$HOME/dotfiles"
+
+HISTSIZE=50000
+SAVEHIST=50000
+HISTFILE=~/.zsh_history
+setopt EXTENDED_HISTORY         # Write timestamps to history
+setopt SHARE_HISTORY            # Share history between sessions
+setopt HIST_EXPIRE_DUPS_FIRST   # Expire duplicate entries first when trimming history
+setopt HIST_IGNORE_DUPS         # Don't record an entry that was just recorded again
+setopt HIST_IGNORE_ALL_DUPS     # Delete old recorded entry if new entry is a duplicate
+setopt HIST_FIND_NO_DUPS        # Do not display a line previously found
+setopt HIST_SAVE_NO_DUPS        # Don't write duplicate entries
+setopt HIST_REDUCE_BLANKS       # Remove superfluous blanks before recording entry
+setopt HIST_IGNORE_SPACE        # Don't write the commands with space in the beginning to history
+
+# Init ZSH
+ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
+[ ! -d $ZINIT_HOME ] && mkdir -p "$(dirname $ZINIT_HOME)"
+[ ! -d $ZINIT_HOME/.git ] && git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_HOME"
+source "${ZINIT_HOME}/zinit.zsh"
+
+# zinit ice depth=1; zinit light romkatv/powerlevel10k
+
+# LS_COLORS
+zinit light trapd00r/LS_COLORS
+zinit pack for ls_colors
+zinit lucid reset \
+ atclone"[[ -z ${commands[dircolors]} ]] && local P=g
+    \${P}sed -i '/DIR/c\DIR 38;5;63;1' LS_COLORS; \
+    \${P}dircolors -b LS_COLORS > clrs.zsh" \
+ atpull'%atclone' pick"clrs.zsh" nocompile'!' for \
+    trapd00r/LS_COLORS
+
+# Case-insensitive completion matching
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
+
+# Homebrew install path customization
+if ! command -v brew &>/dev/null; then
+    echo >&2 "Skipping homebrew initialization in shell."
+else
+    # brew shellenv exports HOMEBREW_PREFIX, PATH etc.
+    eval $(brew shellenv)
+    export HOMEBREW_NO_ANALYTICS=1
+    export HOMEBREW_NO_INSECURE_REDIRECT=1
+fi
+
+# enable fzf integration (ctrl+R for history search)
+zinit ice wait lucid
+zinit snippet OMZP::fzf
+
+zinit ice wait lucid
+zinit light Aloxaf/fzf-tab
+zstyle ':completion:*:git-checkout:*' sort false
+zstyle ':completion:*:descriptions' format '[%d]'
+zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
+zstyle ':completion:*' menu no
+zstyle ':fzf-tab:*' fzf-flags --color=fg:1,fg+:2 --bind=tab:accept
+zstyle ':fzf-tab:*' use-fzf-default-opts yes
+zstyle ':fzf-tab:*' switch-group '<' '>'
+zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls -1 --color=always $realpath'
+zstyle ':fzf-tab:complete:cd:*' popup-pad 30 0
+zstyle ':fzf-tab:complete:ls:*' fzf-preview 'cat $realpath'
+zstyle ':fzf-tab:complete:less:*' fzf-preview 'cat $realpath'
+zstyle ':fzf-tab:complete:vi:*' fzf-preview 'cat $realpath'
+zstyle ':fzf-tab:complete:cat:*' fzf-preview 'cat $realpath'
+
+zinit wait lucid light-mode for \
+    hlissner/zsh-autopair \
+    atinit"zicompinit; zicdreplay" \
+        zdharma-continuum/fast-syntax-highlighting \
+        OMZP::colored-man-pages \
+    atload"_zsh_autosuggest_start" zsh-users/zsh-autosuggestions \
+    blockf atpull'zinit creinstall -q .' zsh-users/zsh-completions
+
+# Essential plugins
+zinit wait lucid light-mode for \
+    zsh-users/zsh-autosuggestions \
+    zsh-users/zsh-completions
+
+# Load plugins with zinit
+zinit ice wait lucid
+zinit snippet OMZP::git
+
+zinit ice wait lucid
+zinit snippet OMZL::completion.zsh
+
+zinit ice wait lucid
+zinit snippet OMZP::colored-man-pages
+
+zinit ice wait lucid
+zinit snippet OMZL::git.zsh
+
+# Load vi mode synchronously because we need it for key bindings
+# zinit ice depth=1
+# zinit load jeffreytse/zsh-vi-mode
+
+# url quoting on paste
+autoload -Uz url-quote-magic
+zle -N self-insert url-quote-magic
+autoload -Uz bracketed-paste-magic
+zle -N bracketed-paste bracketed-paste-magic
+
+if [[ -f "${DOT_FILES_DIR}/zshrc_function" ]]; then
+  zinit ice wait lucid
+  zinit snippet "${DOT_FILES_DIR}/zshrc_function"
+fi
+
+# Load custom aliases
+if [[ -f "${DOT_FILES_DIR}/zshrc_alias" ]]; then
+    zinit ice wait lucid
+    zinit snippet "${DOT_FILES_DIR}/zshrc_alias"
+fi
+
+export EDITOR="vim"
+export VISUAL="$VISUAL"
+export BAT_PAGER="less -RF" # bat pager for scrolling support
+
+# eval "$(oh-my-posh init zsh --config ${DOT_FILES_DIR}/my.omp.toml)"
+# eval "$(starship init zsh)"
+zinit ice depth=1; zinit light romkatv/powerlevel10k
