@@ -117,4 +117,4 @@ export BAT_PAGER="less -RF" # bat pager for scrolling support
 
 # eval "$(oh-my-posh init zsh --config ${DOT_FILES_DIR}/my.omp.toml)"
 # eval "$(starship init zsh)"
-zinit ice depth=1; zinit light romkatv/powerlevel10k
+zinit ice depth=1; zinit light romkatv/powerlevel10k # best at stock
