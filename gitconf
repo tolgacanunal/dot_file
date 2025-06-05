@@ -1,0 +1,3 @@
+git config --global merge.renameLimit 999999
+git config --global diff.renameLimit 999999
+git config --global core.excludesFile '~/.gitignore'

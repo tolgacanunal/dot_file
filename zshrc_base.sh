@@ -1,4 +1,4 @@
-DOT_FILES_DIR="$HOME/dotfiles"
+DOT_FILES_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
 HISTSIZE=50000
 SAVEHIST=50000
@@ -62,6 +62,7 @@ zstyle ':fzf-tab:complete:cd:*' popup-pad 30 0
 zstyle ':fzf-tab:complete:ls:*' fzf-preview 'cat $realpath'
 zstyle ':fzf-tab:complete:less:*' fzf-preview 'cat $realpath'
 zstyle ':fzf-tab:complete:vi:*' fzf-preview 'cat $realpath'
+zstyle ':fzf-tab:complete:zed:*' fzf-preview 'cat $realpath'
 zstyle ':fzf-tab:complete:cat:*' fzf-preview 'cat $realpath'
 
 zinit wait lucid light-mode for \
@@ -100,20 +101,21 @@ zle -N self-insert url-quote-magic
 autoload -Uz bracketed-paste-magic
 zle -N bracketed-paste bracketed-paste-magic
 
-if [[ -f "${DOT_FILES_DIR}/zshrc_function" ]]; then
+if [[ -f "${DOT_FILES_DIR}/zshrc_function.sh" ]]; then
   zinit ice wait lucid
-  zinit snippet "${DOT_FILES_DIR}/zshrc_function"
+  zinit snippet "${DOT_FILES_DIR}/zshrc_function.sh"
 fi
 
 # Load custom aliases
-if [[ -f "${DOT_FILES_DIR}/zshrc_alias" ]]; then
+if [[ -f "${DOT_FILES_DIR}/zshrc_alias.sh" ]]; then
     zinit ice wait lucid
-    zinit snippet "${DOT_FILES_DIR}/zshrc_alias"
+    zinit snippet "${DOT_FILES_DIR}/zshrc_alias.sh"
 fi
 
-export EDITOR="vim"
-export VISUAL="$VISUAL"
-export BAT_PAGER="less -RF" # bat pager for scrolling support
+if [[ -f "${DOT_FILES_DIR}/zshrc_envs.sh" ]]; then
+    zinit ice wait lucid
+    zinit snippet "${DOT_FILES_DIR}/zshrc_envs.sh"
+fi
 
 # eval "$(oh-my-posh init zsh --config ${DOT_FILES_DIR}/my.omp.toml)"
 # eval "$(starship init zsh)"
