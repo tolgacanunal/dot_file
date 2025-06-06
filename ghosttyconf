@@ -1,3 +1,15 @@
+# Theme
 theme = 0x96f
 
+# Font
 font-family = "Iosevka Nerd Font"
+font-size = 14
+
+# Window
+window-padding-x = 10
+window-padding-y = 10
+window-decoration = "auto"
+title = "Ghostty"
+
+# Shell integration
+shell-integration = "detect"

@@ -1,4 +1,11 @@
-DOT_FILES_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+# Universal shell script directory detection
+if [ -n "$ZSH_VERSION" ]; then
+    # Zsh
+    DOT_FILES_DIR="${${(%):-%x}:h}"
+elif [ -n "$BASH_VERSION" ]; then
+    # Bash
+    DOT_FILES_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+fi
 
 HISTSIZE=50000
 SAVEHIST=50000
@@ -12,6 +19,10 @@ setopt HIST_FIND_NO_DUPS        # Do not display a line previously found
 setopt HIST_SAVE_NO_DUPS        # Don't write duplicate entries
 setopt HIST_REDUCE_BLANKS       # Remove superfluous blanks before recording entry
 setopt HIST_IGNORE_SPACE        # Don't write the commands with space in the beginning to history
+setopt AUTO_CD                  # Automatically cd into a directory if you just type its name
+setopt AUTO_PUSHD               # Automatically push the old directory onto the directory stack
+setopt PUSHD_IGNORE_DUPS        # Don't push directories that are already on the stack
+setopt EXTENDED_GLOB            # Use extended globbing features
 
 # Init ZSH
 ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
@@ -19,37 +30,36 @@ ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
 [ ! -d $ZINIT_HOME/.git ] && git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_HOME"
 source "${ZINIT_HOME}/zinit.zsh"
 
-# zinit ice depth=1; zinit light romkatv/powerlevel10k
-
-# LS_COLORS
-zinit light trapd00r/LS_COLORS
-zinit pack for ls_colors
-zinit lucid reset \
- atclone"[[ -z ${commands[dircolors]} ]] && local P=g
-    \${P}sed -i '/DIR/c\DIR 38;5;63;1' LS_COLORS; \
-    \${P}dircolors -b LS_COLORS > clrs.zsh" \
- atpull'%atclone' pick"clrs.zsh" nocompile'!' for \
-    trapd00r/LS_COLORS
-
 # Case-insensitive completion matching
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
 
 # Homebrew install path customization
-if ! command -v brew &>/dev/null; then
-    echo >&2 "Skipping homebrew initialization in shell."
-else
+if command -v brew &>/dev/null; then
     # brew shellenv exports HOMEBREW_PREFIX, PATH etc.
-    eval $(brew shellenv)
+    eval "$(brew shellenv)"
     export HOMEBREW_NO_ANALYTICS=1
     export HOMEBREW_NO_INSECURE_REDIRECT=1
+else
+    echo >&2 "Skipping homebrew initialization in shell."
 fi
 
-# enable fzf integration (ctrl+R for history search)
-zinit ice wait lucid
-zinit snippet OMZP::fzf
+autoload -U compinit && compinit
 
-zinit ice wait lucid
-zinit light Aloxaf/fzf-tab
+# Zinit plugins
+zinit ice wait lucid atinit"zicompinit; zicdreplay"
+zinit light-mode for \
+    zsh-users/zsh-completions \
+    Aloxaf/fzf-tab \
+    hlissner/zsh-autopair \
+    zdharma-continuum/fast-syntax-highlighting \
+    zsh-users/zsh-autosuggestions \
+    OMZP::colored-man-pages \
+    OMZP::fzf \
+    OMZP::git
+
+zinit ice depth=1; zinit light romkatv/powerlevel10k
+
+# FZF tab completions settings
 zstyle ':completion:*:git-checkout:*' sort false
 zstyle ':completion:*:descriptions' format '[%d]'
 zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
@@ -65,35 +75,8 @@ zstyle ':fzf-tab:complete:vi:*' fzf-preview 'cat $realpath'
 zstyle ':fzf-tab:complete:zed:*' fzf-preview 'cat $realpath'
 zstyle ':fzf-tab:complete:cat:*' fzf-preview 'cat $realpath'
 
-zinit wait lucid light-mode for \
-    hlissner/zsh-autopair \
-    atinit"zicompinit; zicdreplay" \
-        zdharma-continuum/fast-syntax-highlighting \
-        OMZP::colored-man-pages \
-    atload"_zsh_autosuggest_start" zsh-users/zsh-autosuggestions \
-    blockf atpull'zinit creinstall -q .' zsh-users/zsh-completions
-
-# Essential plugins
-zinit wait lucid light-mode for \
-    zsh-users/zsh-autosuggestions \
-    zsh-users/zsh-completions
-
-# Load plugins with zinit
-zinit ice wait lucid
-zinit snippet OMZP::git
-
-zinit ice wait lucid
-zinit snippet OMZL::completion.zsh
-
-zinit ice wait lucid
-zinit snippet OMZP::colored-man-pages
-
-zinit ice wait lucid
-zinit snippet OMZL::git.zsh
-
-# Load vi mode synchronously because we need it for key bindings
-# zinit ice depth=1
-# zinit load jeffreytse/zsh-vi-mode
+# Enable Vi mode
+bindkey -v
 
 # url quoting on paste
 autoload -Uz url-quote-magic
@@ -101,22 +84,16 @@ zle -N self-insert url-quote-magic
 autoload -Uz bracketed-paste-magic
 zle -N bracketed-paste bracketed-paste-magic
 
+# Source local configs
 if [[ -f "${DOT_FILES_DIR}/zshrc_function.sh" ]]; then
-  zinit ice wait lucid
-  zinit snippet "${DOT_FILES_DIR}/zshrc_function.sh"
+  source "${DOT_FILES_DIR}/zshrc_function.sh"
 fi
 
 # Load custom aliases
 if [[ -f "${DOT_FILES_DIR}/zshrc_alias.sh" ]]; then
-    zinit ice wait lucid
-    zinit snippet "${DOT_FILES_DIR}/zshrc_alias.sh"
+    source "${DOT_FILES_DIR}/zshrc_alias.sh"
 fi
 
 if [[ -f "${DOT_FILES_DIR}/zshrc_envs.sh" ]]; then
-    zinit ice wait lucid
-    zinit snippet "${DOT_FILES_DIR}/zshrc_envs.sh"
+    source "${DOT_FILES_DIR}/zshrc_envs.sh"
 fi
-
-# eval "$(oh-my-posh init zsh --config ${DOT_FILES_DIR}/my.omp.toml)"
-# eval "$(starship init zsh)"
-zinit ice depth=1; zinit light romkatv/powerlevel10k # best at stock
