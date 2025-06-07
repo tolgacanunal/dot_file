@@ -1,8 +1,5 @@
 # Set default editor
-if command -v zed &> /dev/null; then
-    export VISUAL="zed"
-    export EDITOR="zed"
-elif command -v nvim &> /dev/null; then
+if command -v nvim &> /dev/null; then
   export VISUAL="nvim"
   export EDITOR="nvim"
 elif command -v vim &> /dev/null; then

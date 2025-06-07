@@ -1,8 +1,5 @@
 #!/bin/bash
 
-set -e
-set -o pipefail
-
 # Get the directory of the script
 DOTFILES_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
@@ -113,6 +110,16 @@ if [ -f "$GHOSTTY_CONFIG_FILE" ]; then
     setup_symlink "$GHOSTTY_CONFIG_FILE" "$GHOSTTY_SYMLINK_PATH"
 else
     echo "ghosttyconf not found, skipping."
+fi
+
+# --- Aerospace Setup ---
+AEROSPACE_CONFIG_FILE="${DOTFILES_DIR}/.aerospace.toml"
+AEROSPACE_SYMLINK_PATH="$HOME/.aerospace.toml"
+
+if [ -f "$AEROSPACE_CONFIG_FILE" ]; then
+    setup_symlink "$AEROSPACE_CONFIG_FILE" "$AEROSPACE_SYMLINK_PATH"
+else
+    echo ".aerospace.toml not found, skipping."
 fi
 
 echo "Dotfiles setup complete! Please restart your shell." 
