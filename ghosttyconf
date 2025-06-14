@@ -13,3 +13,5 @@ title = "Ghostty"
 
 # Shell integration
 shell-integration = "detect"
+
+keybind = global:cmd+\=toggle_quick_terminal
